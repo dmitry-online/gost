@@ -6,10 +6,14 @@ import (
 	"net"
 	"net/url"
 
+	"strings"
 	"github.com/ginuerzh/gosocks4"
 	"github.com/ginuerzh/gosocks5"
 	"github.com/go-log/log"
 )
+
+var AccessIp []string
+var StartMode string
 
 // Handler is a proxy server handler
 type Handler interface {
@@ -91,8 +95,18 @@ func (h *autoHandler) Handle(conn net.Conn) {
 		conn.Close()
 		return
 	}
-
 	cc := &bufferdConn{Conn: conn, br: br}
+
+	remoteAddr := conn.RemoteAddr().String()
+
+	if StartMode != "debug" && gost.AccessIp != nil {
+		for _, access := range AccessIp {
+			if !strings.Contains(remoteAddr, access) {
+				cc.Close()
+				return
+			}
+		}
+	}
 	switch b[0] {
 	case gosocks4.Ver4:
 		SOCKS4Handler(h.options...).Handle(cc)
