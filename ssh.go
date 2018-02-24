@@ -151,11 +151,15 @@ func (tr *sshForwardTransporter) Handshake(conn net.Conn, options ...HandshakeOp
 	for _, option := range options {
 		option(opts)
 	}
-
 	config := ssh.ClientConfig{
 		Timeout:         opts.Timeout,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+	config.SetDefaults()
+	config.Ciphers = append(config.Ciphers, "aes128-cbc")
+	config.Ciphers = append(config.Ciphers, "arcfour")
+	config.Ciphers = append(config.Ciphers, "3des-cbc")
+
 	if opts.User != nil {
 		config.User = opts.User.Username()
 		password, _ := opts.User.Password()

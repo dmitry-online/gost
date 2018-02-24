@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/url"
 
-	"strings"
+	//"strings"
 	"github.com/ginuerzh/gosocks4"
 	"github.com/ginuerzh/gosocks5"
 	"github.com/go-log/log"
@@ -97,16 +97,30 @@ func (h *autoHandler) Handle(conn net.Conn) {
 	}
 	cc := &bufferdConn{Conn: conn, br: br}
 
-	remoteAddr := conn.RemoteAddr().String()
+	var remoteAddr string
+	if addr, ok := conn.RemoteAddr().(*net.TCPAddr); ok {
+		remoteAddr = addr.IP.String()
+	} else {
+		cc.Close()
+		return
+	}
 
-	if StartMode != "debug" && gost.AccessIp != nil {
-		for _, access := range AccessIp {
-			if !strings.Contains(remoteAddr, access) {
-				cc.Close()
-				return
+	access := false
+	if StartMode != "debug" && len(AccessIp) != 0 {
+		for _, ip := range AccessIp {
+			if remoteAddr == ip {
+				access = true
 			}
 		}
+	} else {
+		access = true
 	}
+
+	if !access {
+		cc.Close()
+		return
+	}
+
 	switch b[0] {
 	case gosocks4.Ver4:
 		SOCKS4Handler(h.options...).Handle(cc)
