@@ -252,6 +252,11 @@ func (tr *sshTunnelTransporter) Handshake(conn net.Conn, options ...HandshakeOpt
 		Timeout:         opts.Timeout,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
+	config.SetDefaults()
+	config.Ciphers = append(config.Ciphers, "aes128-cbc")
+	config.Ciphers = append(config.Ciphers, "arcfour")
+	config.Ciphers = append(config.Ciphers, "3des-cbc")
+	
 	if opts.User != nil {
 		config.User = opts.User.Username()
 		password, _ := opts.User.Password()
