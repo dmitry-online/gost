@@ -92,7 +92,6 @@ func (h *httpHandler) Handle(conn net.Conn) {
 		log.Logf("[http] %s - %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
 		return
 	}
-	log.Logf("[http-info] %s - %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), req.Host, req.URL.RequestURI())
 
 	defer req.Body.Close()
 
@@ -194,9 +193,10 @@ func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 		}
 	}
 
-	log.Logf("[http] %s <-> %s", cc.LocalAddr(), host)
+	log.Logf("[http-info] %s - %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), req.Host, req.URL.RequestURI())
+	//log.Logf("[http] %s <-> %s", cc.LocalAddr(), host)
 	transport(conn, cc)
-	log.Logf("[http] %s >-< %s", cc.LocalAddr(), host)
+	//log.Logf("[http] %s >-< %s", cc.LocalAddr(), host)
 }
 
 func (h *httpHandler) forwardRequest(conn net.Conn, req *http.Request) {
