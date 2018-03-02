@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-log/log"
 )
+var ServersRunning []*Server
 
 // Server is a proxy server.
 type Server struct {
@@ -25,6 +26,8 @@ func (s *Server) Close() error {
 
 // Serve serves as a proxy server.
 func (s *Server) Serve(h Handler) error {
+	ServersRunning = append(ServersRunning, s)
+
 	if s.Listener == nil {
 		ln, err := TCPListener("")
 		if err != nil {
@@ -78,6 +81,7 @@ func TCPListener(addr string) (Listener, error) {
 		return nil, err
 	}
 	ln, err := net.ListenTCP("tcp", laddr)
+
 	if err != nil {
 		return nil, err
 	}
