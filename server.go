@@ -5,43 +5,8 @@ import (
 	"net"
 	"time"
 	"github.com/go-log/log"
-	"sync"
 )
 
-type ServerObg struct {
-	Server     *Server
-	ProxyType  string
-	RemoteAddr string
-	Login      string
-	Pass       string
-	LocalAddr  string
-}
-
-var (
-	ServerObgList         = make(map[int]*ServerObg)
-	ServerObgListLock     = &sync.RWMutex{}
-	ServerObgListSequence int
-)
-
-func ReadArrServerObgList()(map[int]*ServerObg) {
-	ServerObgListLock.Lock()
-	defer ServerObgListLock.Unlock()
-	ServerObgListSequence++
-	return ServerObgList
-}
-
-func WriteServerObgList(v *ServerObg) {
-	ServerObgListLock.Lock()
-	defer ServerObgListLock.Unlock()
-	ServerObgListSequence++
-	ServerObgList[ServerObgListSequence] = v
-}
-
-func DeleteServerObgList(key int) {
-	ServerObgListLock.Lock()
-	defer ServerObgListLock.Unlock()
-	delete(ServerObgList, key)
-}
 
 // Server is a proxy server.
 type Server struct {
@@ -55,20 +20,14 @@ func (s *Server) Addr() net.Addr {
 
 // Close closes the server
 func (s *Server) Close() error {
-	ServerObgListLock.Lock()
-	defer ServerObgListLock.Unlock()
-	for key, obg := range ServerObgList{
-		if obg.LocalAddr == s.Addr().String(){
-			delete(ServerObgList, key)
-		}
-	}
 	return s.Listener.Close()
 }
 
 // Serve serves as a proxy server.
-func (s *Server) Serve(h Handler, proxyType string, localAddr string, remoteAddr string, login string, pass string) error {
+func (s *Server) Serve(h Handler, servers chan *Server) error {
 	//pp.Println("Новый адрес: "+ remoteAddr + "локальный адрес: " + localAddr)
-	WriteServerObgList(&ServerObg{s, proxyType, remoteAddr, login, pass, localAddr})
+	//WriteServerObgList(&ServerObg{s, proxyType, remoteAddr, login, pass, localAddr})
+	servers <- s
 
 	if s.Listener == nil {
 		ln, err := TCPListener("")
